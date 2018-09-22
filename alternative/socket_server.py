@@ -1,11 +1,23 @@
 import picamera
+import threading
 import socket
+import select
+from threading import Thread
+import sys
 import time
+from datetime import datetime, timedelta
+import multiprocessing
+import queue
 from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
-
-#from alternative.raspberry_streaming_server import RaspberryStreamingServer
+from wifi_monitor import ConnectionMonitor
+from iwconfig import iwconfig
 
 #from gpiozero import CPUTemperature
+import os
+import io
+import psutil
+
+running = True
 
 '''
 The RaspberryStreamingServer accepts websocket connections on which it'll return the video stream on.
@@ -16,12 +28,58 @@ Therefore the data will be send via the websocket stream.
 This example was heavily inspired by https://github.com/waveform80/pistreaming where single mjpeg frames were streamed via websockets to the browser where the were decoded and displayed. However for a h264 video stream the decoding is not trivial and requires a lot of work.
 '''
 
-WS_PORT = 8084
-HOST = "0.0.0.0"
 
 CAMERA_MODE = 0
 FRAMERATE = 25
+
+WS_INFO_PORT = 8082
+WS_PORT = 8084
 ROTATION = 0
+HOST = "0.0.0.0"
+print("Host: ", HOST, " Port: ", WS_INFO_PORT)
+
+def getCpuLoad():
+    return psutil.cpu_percent()
+
+def getRamUsagePercent():
+    ram = psutil.virtual_memory()
+    return  ram.percent
+
+def getCpuTemperature():
+    with io.open("/sys/class/thermal/thermal_zone0/temp", 'r') as f:
+        return float(f.readline().strip()) / 1000
+
+def getGpuTemperature():
+    ret = os.popen('vcgencmd measure_temp').readline();
+    temperature = ret.replace("temp=","").replace("'C\n","");
+    return(float(temperature))
+
+
+class SimpleEcho(WebSocket):
+
+    #def __init__(self, *args, **kwargs):
+    #    print("Calling init here!!")
+    #    super(SimpleEcho, self).__init__(*args, **kwargs)
+
+    def handleMessage(self):
+        # echo message back to client
+        #self.sendMessage(self.data)
+        print("Message received: ", self.data)
+
+    def handleConnected(self):
+        print(self.address, 'connected')
+        try:
+            self.rss = RaspberryStreamingServer()
+            rssThread = Thread(target=self.rss.start)
+            rssThread.start()
+        except Exception as e:
+            print(e)
+        clients.append(self)
+
+    def handleClose(self):
+        print(self.address, 'closed')
+        self.rss.stop()
+        clients.remove(self)
 
 class RaspberryStreamingServer(object):
     stopFlag = False
@@ -44,7 +102,7 @@ class RaspberryStreamingServer(object):
         header_params = [s.strip() for s in header.splitlines()]
         #print("Header Params: ", header_params)
 
-        # Default Resolution
+        # Default Resolutio
         WIDTH = 320
         HEIGHT = 240
         # Parse resolution from header
@@ -89,8 +147,7 @@ class RaspberryStreamingServer(object):
             #time.sleep(1)
             #camera.awb_mode = 'off'
             #camera.awb_gains = (1.45, 1.45)
-            #camera.video_stabilization = True
-            #camera.iso = 1600
+
 
             #camera.start_recording(connection, format='h264', resize=(640, 480))
             camera.start_recording(self.connection, format='h264')
@@ -125,3 +182,48 @@ class RaspberryStreamingServer(object):
     def stop(self):
         self.stopFlag = True
         print("Stop requested!")
+
+
+
+
+
+
+# Info Websocket variables
+clients = []
+cm = ConnectionMonitor("wlan0")
+iwconf = iwconfig()
+
+def sendInfo():
+    #print("Sending Info..")
+    cm.update()
+    text =  "CPU: " + "%.1f" % getCpuTemperature() + "°C" + "\n"
+    text += "GPU: " + "%.1f" % getGpuTemperature() + "°C" + "\n"
+    text += "CPU: " + "%.1f" % getCpuLoad() + "%" + "\n"
+    text += "RAM: " + "%.1f" % getRamUsagePercent() + "%" + "\n"
+    #text += "_____________ \n"
+    #text += "Read kb/s: "  + "%.1f" % (cm.readBps / 1000) + "\n"
+    #text += "Packets: "   + str(cm.readPackets)   + "\n"
+    #text += "_____________ \n"
+    #text += "Write kb/s: " + "%.1f" % (cm.writeBps / 1000) + "\n"
+    #text += "Packets: "   + str(cm.writePackets) + "\n"
+    text += iwconf.getIwconfig()
+
+    #self.cm.output()
+    #print(text)
+    for client in clients:
+        client.sendMessage(text)
+    threading.Timer(1.0, sendInfo, []).start()
+
+sendInfo()
+
+
+
+
+
+
+
+
+print("Create info server instance")
+server = SimpleWebSocketServer('', WS_INFO_PORT, SimpleEcho)
+print("Start websocket")
+server.serveforever()

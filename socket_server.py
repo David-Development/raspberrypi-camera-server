@@ -15,8 +15,6 @@ from wifi_monitor import ConnectionMonitor
 from iwconfig import iwconfig
 import re
 
-#from alternative.raspberry_streaming_server import RaspberryStreamingServer
-
 #from gpiozero import CPUTemperature
 import os
 import io
@@ -84,12 +82,6 @@ class SimpleEcho(WebSocket):
 
     def handleConnected(self):
         print(self.address, 'connected')
-        #try:
-        #    self.rss = RaspberryStreamingServer()
-        #    rssThread = Thread(target=self.rss.start)
-        #    rssThread.start()
-        #except Exception as e:
-        #    print(e)
         clients.append(self)
 
     def handleClose(self):
