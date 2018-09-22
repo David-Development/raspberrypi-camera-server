@@ -21,10 +21,13 @@ Next, download the repo, install the dependencies and run the server
 git clone https://github.com/David-Development/raspberrypi-camera-server.git
 cd raspberrypi-camera-server/
 
+# Install python3 / pip3 (if not already installed)
+sudo apt-get -y install python3 python3-pip
+
 # install dependencies
-pip3 install picamera
-pip3 install git+https://github.com/dpallot/simple-websocket-server.git
-pip3 install psutil
+python3 -m pip install picamera
+python3 -m pip install git+https://github.com/dpallot/simple-websocket-server.git
+python3 -m pip install psutil
 
 # start server
 python3 socket_server.py
