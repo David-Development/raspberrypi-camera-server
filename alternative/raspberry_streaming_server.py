@@ -12,6 +12,8 @@ The RaspberryStreamingServer accepts websocket connections on which it'll return
 Once the connection is established, a "file" like object will be created into which the picamera can output it's camera stream.
 This "file" like object is actually a representation of the websocket stream.
 Therefore the data will be send via the websocket stream.
+
+This example was heavily inspired by https://github.com/waveform80/pistreaming where single mjpeg frames were streamed via websockets to the browser where the were decoded and displayed. However for a h264 video stream the decoding is not trivial and requires a lot of work.
 '''
 
 WS_PORT = 8084
