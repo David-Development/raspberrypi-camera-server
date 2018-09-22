@@ -1,8 +1,8 @@
 # Raspberry Pi Video/Camera Streaming Server
 
 This is a demonstration for low latency streaming of the Pi's camera module to
-any client that can read raw h264 video streams via TCP Sockets (Such as //TODO: ANDROID CLIENT HERE)
-By developing this project I was inspired by some of the ideas from the great https://github.com/waveform80/pistreaming project!
+any client that can read raw h264 video streams via TCP Sockets (Such as [David-Development/raspberrypi-camera-android-client](https://github.com/David-Development/raspberrypi-camera-android-client/tree/master))
+By developing this project I was inspired by some of the ideas from the great [waveform80/pistreaming](https://github.com/waveform80/pistreaming) project!
 
 ## Installation
 
