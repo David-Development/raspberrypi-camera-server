@@ -22,8 +22,11 @@ import os
 import io
 import psutil
 
-running = True
 
+
+###############################################################################
+# CONFIG
+###############################################################################
 
 CAMERA_MODE = 0
 FRAMERATE = 25
@@ -31,8 +34,11 @@ ROTATION = 0
 
 WS_INFO_PORT = 8082
 HOST = "0.0.0.0"
-print("Host: ", HOST, " Port: ", WS_INFO_PORT)
 
+###############################################################################
+
+running = True
+print("Host: ", HOST, " Port: ", WS_INFO_PORT)
 regexCameraResolution = r"Camera-Width: (\d+) Camera-Height: (\d+)"
 
 def getCpuLoad():

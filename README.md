@@ -2,16 +2,16 @@
 
 This is a demonstration for low latency streaming of the Pi's camera module to
 any client that can read raw h264 video streams via TCP Sockets (Such as //TODO: ANDROID CLIENT HERE)
-
+By developing this project I was inspired by some of the ideas from the great https://github.com/waveform80/pistreaming project!
 
 ## Installation
 
 Firstly make sure you've got a functioning Pi camera module (test it with
-`raspistill` to be certain). Then make sure you've got the following packages
+`raspistill / raspivid` to be certain). Then make sure you've got the following packages
 installed:
 
 ```bash
-sudo apt-get install libav-tools git python3-picamera python3-ws4py
+sudo apt-get install libav-tools git
 ```
 
 Next, clone this repository:
